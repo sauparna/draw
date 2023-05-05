@@ -1,0 +1,4 @@
+Compile command:
+
+cl -Zi /D "_UNICODE" /D "UNICODE" draw.cpp kd2dsurface.cpp kd2dwin.cpp kwin.cpp -link user32.lib d2d1.lib dwrite.lib gdi32.lib
+
