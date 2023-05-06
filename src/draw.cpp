@@ -1,8 +1,4 @@
-#define STRICT
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <memory>
+#include "k_graphics.h"
 #include "k_d2d_window.h"
 #include "k_d2d_surface.h"
 

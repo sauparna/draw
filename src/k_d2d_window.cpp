@@ -1,4 +1,4 @@
-#include <windows.h>
+#include "k_graphics.h"
 #include "k_d2d_window.h"
 #include "k_d2d_surface.h"
 

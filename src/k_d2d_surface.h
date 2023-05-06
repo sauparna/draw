@@ -1,8 +1,6 @@
 #pragma once
 
-#include <wrl/client.h>
-#include <d2d1.h>
-#include <dwrite.h>
+#include "k_graphics.h"
 
 class KD2DSurface
 {

@@ -1,8 +1,4 @@
-#define STRICT
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <assert.h>
+#include "k_graphics.h"
 #include "k_win32_window.h"
 
 KWindow::KWindow() { hwnd_ = NULL; }
