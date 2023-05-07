@@ -6,13 +6,12 @@
 #define NOMINMAX // Use the STL min/max
 
 #include <windows.h>
-#include <wrl/client.h>
-
 #include <d2d1.h>
 #include <dwrite.h>
-
+#include <wincodec.h>
 #include <memory>
 #include <cassert>
+#include <string>
 /*
 #include <algorithm>
 #include <exception>
