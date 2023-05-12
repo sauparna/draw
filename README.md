@@ -15,4 +15,4 @@ written to the directory `draw\build`, and `draw.exe` is in there.
 
 ![win01](test/win01.png)
 
-_May 12, 2023_
+_May 12, 2023_ : A window with rendered text 'S' and a bitmap loaded from a PNG file on disk.
