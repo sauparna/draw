@@ -12,6 +12,7 @@ private:
     void on_resize(unsigned w, unsigned h);
     void on_key_down(WPARAM wparam, LPARAM lparam);
     void on_draw(HDC hdc);
+    void on_quit();
     
     std::unique_ptr<KD2DSurface> k_d2d_surface_;
 };

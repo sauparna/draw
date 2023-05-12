@@ -21,7 +21,7 @@
 #include <cstdio>
 */
 
-namespace dx
+namespace kdx
 {
     class com_exception : public std::exception
     {

@@ -29,6 +29,13 @@ void KD2DWindow::on_draw(HDC hdc)
     k_d2d_surface_->render();
 }
 
+void KD2DWindow::on_quit()
+{
+    if (!k_d2d_surface_) return;
+    k_d2d_surface_->draw_bitmap(L"S");
+    k_d2d_surface_->write_bitmap_file(L"..\\out\\out.png");
+}
+
 LRESULT KD2DWindow::window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
     switch (msg)
@@ -54,6 +61,7 @@ LRESULT KD2DWindow::window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     case WM_DESTROY:
     {
 	PostQuitMessage(0);
+	on_quit();
 	return 0;
     }
     }
