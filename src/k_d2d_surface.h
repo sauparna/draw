@@ -41,6 +41,9 @@ protected:
     ID2D1Bitmap *d2d_bitmap_;
     IWICBitmap *wic_bitmap_;
 
+    ID2D1Bitmap *bmp_;
+    unsigned char *mem_;
+    
     HWND hwnd_;
 
     /* size of the D2D drawing rectangle (which must match the size of

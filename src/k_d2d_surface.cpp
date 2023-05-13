@@ -7,6 +7,8 @@ using namespace kdx;
 KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
     : hwnd_{hwnd}, surface_size_{sz}
 {
+    mem_ = new unsigned char[100 * 100 * 4];
+    memset(mem_, 0, 100 * 100 * 4);
     cdir();
     cdir_bitmap(L"..\\data\\tintin_on_train.jpg");
     cddr();
@@ -15,6 +17,7 @@ KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
 
 KD2DSurface::~KD2DSurface()
 {
+    delete [] mem_;
 }
 
 void KD2DSurface::cdir()
@@ -55,6 +58,12 @@ void KD2DSurface::cddr()
     win_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &win_brush_);
     win_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &win_text_brush_);
     win_rt_->CreateBitmapFromWicBitmap(wic_converter_, nullptr, &d2d_bitmap_);
+
+    /* TODO */
+    D2D1_PIXEL_FORMAT pixel_format = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+						       D2D1_ALPHA_MODE_IGNORE);
+    D2D1_BITMAP_PROPERTIES bmp_prop = D2D1::BitmapProperties(pixel_format, 96.0f, 96.0f);
+    dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(100, 100), mem_, 100 * 4, bmp_prop, &bmp_));
     bmp_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &bmp_text_brush_);
 }
 
@@ -70,6 +79,7 @@ void KD2DSurface::ddr()
     wic_converter_->Release();
     wic_factory_->Release();
     d2d_bitmap_->Release();
+    bmp_->Release();
     win_rt_->Release();
     win_brush_->Release();
     win_text_brush_->Release();
@@ -99,7 +109,7 @@ void KD2DSurface::render()
     win_rt_->BeginDraw();
     clear_surface();
     draw_text(L"S");
-    draw_bitmap_to_window(100.0f, 10.0f);
+    draw_bitmap_to_window(50.0f, 10.0f);
     HRESULT hr = win_rt_->EndDraw();
     if (FAILED(hr) || hr == D2DERR_RECREATE_TARGET)
     {
@@ -119,6 +129,7 @@ void KD2DSurface::draw_bitmap_to_window(FLOAT x = 0.0f, FLOAT y = 0.0f)
     UINT w, h;
     wic_converter_->GetSize(&w, &h);
     win_rt_->DrawBitmap(d2d_bitmap_, D2D1::RectF(x, y, x + (FLOAT)w, y + (FLOAT)h));
+    win_rt_->DrawBitmap(bmp_, D2D1::RectF(x + 130, y, x + 130.0f + 100.0f, y + 100.0f));
 }
 
 D2D1_SIZE_U KD2DSurface::surface_size() const noexcept
