@@ -42,7 +42,20 @@ protected:
     IWICBitmap *wic_bitmap_;
 
     ID2D1Bitmap *bmp_;
-    unsigned char *mem_;
+    uint32_t *mem_;
+
+    D2D1_BITMAP_PROPERTIES bmp_prop_;
+    const unsigned int kBitmapPixelWidth = 100;
+    const unsigned int kBitmapPixelHeight = 100;
+    const unsigned int kBytesPerPixel = 4;
+    unsigned int x_ = 50;
+    unsigned int y_ = 10;
+    unsigned int dx_ = 1;
+    unsigned int dy_ = 1;
+
+    /* 32-bit color integer layout: 0xffaabbcc, where ff = alpha, aa = red, bb = green, cc = blue */
+    void put_pixel(unsigned int x, unsigned int y, uint32_t color);
+    void clear_bitmap(uint32_t color);
     
     HWND hwnd_;
 
@@ -50,3 +63,4 @@ protected:
      * the window's client area.) */
     D2D1_SIZE_U surface_size_; 
 };
+

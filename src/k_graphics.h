@@ -12,6 +12,8 @@
 #include <memory>
 #include <cassert>
 #include <string>
+#include <cstdint>
+
 /*
 #include <algorithm>
 #include <exception>

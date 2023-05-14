@@ -7,8 +7,14 @@ using namespace kdx;
 KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
     : hwnd_{hwnd}, surface_size_{sz}
 {
-    mem_ = new unsigned char[100 * 100 * 4];
-    memset(mem_, 0, 100 * 100 * 4);
+    bmp_prop_ = D2D1::BitmapProperties();
+    bmp_prop_.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+					     D2D1_ALPHA_MODE_IGNORE);
+    unsigned int mem_sz = kBitmapPixelWidth * kBitmapPixelHeight;
+    mem_ = new uint32_t[mem_sz];
+    memset(mem_, 0, mem_sz * kBytesPerPixel);
+    clear_bitmap(0x00000000);
+    put_pixel(x_, y_, 0xffffffff);
     cdir();
     cdir_bitmap(L"..\\data\\tintin_on_train.jpg");
     cddr();
@@ -58,13 +64,25 @@ void KD2DSurface::cddr()
     win_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &win_brush_);
     win_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &win_text_brush_);
     win_rt_->CreateBitmapFromWicBitmap(wic_converter_, nullptr, &d2d_bitmap_);
-
-    /* TODO */
-    D2D1_PIXEL_FORMAT pixel_format = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
-						       D2D1_ALPHA_MODE_IGNORE);
-    D2D1_BITMAP_PROPERTIES bmp_prop = D2D1::BitmapProperties(pixel_format, 96.0f, 96.0f);
-    dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(100, 100), mem_, 100 * 4, bmp_prop, &bmp_));
     bmp_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &bmp_text_brush_);
+
+    /* Create a D2D1Bitmap from a bitmap in memory */
+    /*
+    D2D1_BITMAP_PROPERTIES bmp_prop = D2D1::BitmapProperties();
+    bmp_prop.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,
+					     D2D1_ALPHA_MODE_IGNORE);
+    dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(kBitmapPixelWidth, kBitmapPixelHeight),
+				    mem_,
+				    kBitmapPixelWidth * kBytesPerPixel,
+				    bmp_prop,
+				    &bmp_));
+    */
+
+    dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(kBitmapPixelWidth, kBitmapPixelHeight),
+				    mem_,
+				    kBitmapPixelWidth * kBytesPerPixel,
+				    bmp_prop_,
+				    &bmp_));
 }
 
 void KD2DSurface::cwdr()
@@ -129,6 +147,31 @@ void KD2DSurface::draw_bitmap_to_window(FLOAT x = 0.0f, FLOAT y = 0.0f)
     UINT w, h;
     wic_converter_->GetSize(&w, &h);
     win_rt_->DrawBitmap(d2d_bitmap_, D2D1::RectF(x, y, x + (FLOAT)w, y + (FLOAT)h));
+
+    /*************************************************************************************/
+    /* update bitmap memory */
+
+    put_pixel(x_, y_, 0x00000000);
+
+    x_ += dx_;
+    y_ += dy_;
+
+    if (x_ == kBitmapPixelWidth - 1 || x_ == 0) { dx_ = -dx_; }
+    if (y_ == kBitmapPixelHeight - 1 || y_ == 0) { dy_ = -dy_; }
+
+    put_pixel(x_, y_, 0xffffffff);
+
+    /*************************************************************************************/
+    /* recreate bitmap */
+
+    bmp_->Release();
+    dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(kBitmapPixelWidth, kBitmapPixelHeight),
+				    mem_,
+				    kBitmapPixelWidth * kBytesPerPixel,
+				    bmp_prop_,
+				    &bmp_));
+    /*************************************************************************************/
+       
     win_rt_->DrawBitmap(bmp_, D2D1::RectF(x + 130, y, x + 130.0f + 100.0f, y + 100.0f));
 }
 
@@ -196,4 +239,20 @@ void KD2DSurface::draw_bitmap(const wchar_t *text)
     bmp_rt_->Clear(D2D1::ColorF(D2D1::ColorF::FloralWhite));
     bmp_rt_->DrawText(text, wcslen(text), dwrite_text_format_, &kRect, bmp_text_brush_);
     dx_assert(bmp_rt_->EndDraw());
+}
+
+void KD2DSurface::put_pixel(unsigned int x, unsigned int y, uint32_t color)
+{
+    mem_[y * kBitmapPixelWidth + x] = color;
+}
+
+void KD2DSurface::clear_bitmap(uint32_t color)
+{
+    for (int y = 0; y < kBitmapPixelHeight; y++)
+    {
+	for (int x = 0; x < kBitmapPixelWidth; x++)
+	{
+	    mem_[y * kBitmapPixelWidth + x] = color;
+	}
+    }
 }

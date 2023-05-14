@@ -27,6 +27,7 @@ void KD2DWindow::on_draw(HDC hdc)
 {
     if (!k_d2d_surface_) return;
     k_d2d_surface_->render();
+    InvalidateRect(hwnd_, NULL, FALSE);
 }
 
 void KD2DWindow::on_quit()
