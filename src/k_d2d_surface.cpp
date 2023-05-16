@@ -164,12 +164,23 @@ void KD2DSurface::draw_bitmap_to_window(FLOAT x = 0.0f, FLOAT y = 0.0f)
     /*************************************************************************************/
     /* recreate bitmap */
 
+    /* FINDOUT: Keep this block of code and tag a release with it so
+     * as to be able to compare performance, but before that make sure
+     * you have refactored the code and added all necessary error
+     * handling pieces. */
+
+    /*
     bmp_->Release();
     dx_assert(win_rt_->CreateBitmap(D2D1::SizeU(kBitmapPixelWidth, kBitmapPixelHeight),
 				    mem_,
 				    kBitmapPixelWidth * kBytesPerPixel,
 				    bmp_prop_,
 				    &bmp_));
+    */
+    
+    static const D2D1_RECT_U dst_rect = D2D1::RectU(0, 0, kBitmapPixelWidth, kBitmapPixelHeight);
+    static const uint32_t pitch = kBitmapPixelWidth * kBytesPerPixel;
+    bmp_->CopyFromMemory(&dst_rect, mem_, pitch);
     /*************************************************************************************/
        
     win_rt_->DrawBitmap(bmp_, D2D1::RectF(x + 130, y, x + 130.0f + 100.0f, y + 100.0f));
