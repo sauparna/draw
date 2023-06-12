@@ -13,12 +13,8 @@ public:
     void ddr();
     void handle_device_loss();
     void resize(D2D1_SIZE_U sz);
-    void clear_surface();
     void render();
-    void draw_text(const wchar_t *text);
-    void draw_bitmap_to_window(FLOAT x, FLOAT y);
-    void draw_bitmap(const wchar_t *text);
-    void cdir_bitmap(std::wstring filename);
+    void update();
     void write_bitmap_file(std::wstring filename);
     
     D2D1_SIZE_U surface_size() const noexcept;
@@ -27,40 +23,42 @@ public:
 
 protected:
     ID2D1Factory *d2d_factory_;
-    IDWriteFactory *dwrite_factory_;
-    IDWriteTextFormat *dwrite_text_format_;
     ID2D1HwndRenderTarget *win_rt_;
-    ID2D1RenderTarget *bmp_rt_;
-    ID2D1SolidColorBrush *win_brush_;
-    ID2D1SolidColorBrush *win_text_brush_;
-    ID2D1SolidColorBrush *bmp_text_brush_;
-    ID2D1StrokeStyle *win_stroke_style_;
 
+    /* Image file loader components. */
     IWICImagingFactory2 *wic_factory_;
     IWICFormatConverter *wic_converter_;
-    ID2D1Bitmap *d2d_bitmap_;
     IWICBitmap *wic_bitmap_;
+    ID2D1Bitmap *d2d_bitmap_;
+    std::wstring img_filename_{L"..\\data\\tintin_on_train.jpg"};
+    unsigned kImageWidth = 0;
+    unsigned kImageHeight = 0;
 
-    ID2D1Bitmap *bmp_;
-    uint32_t *mem_;
-
+    /* In-memory bitmap (raster) components. */
+    ID2D1Bitmap *d2d_bmp_;
     D2D1_BITMAP_PROPERTIES bmp_prop_;
-    const unsigned int kBitmapPixelWidth = 100;
-    const unsigned int kBitmapPixelHeight = 100;
-    const unsigned int kBytesPerPixel = 4;
-    unsigned int x_ = 50;
-    unsigned int y_ = 10;
-    unsigned int dx_ = 1;
-    unsigned int dy_ = 1;
-
+    const unsigned kBitmapPixelWidth = 100;
+    const unsigned kBitmapPixelHeight = 100;
+    const unsigned kBytesPerPixel = 4;
+    const uint32_t kBitmapPitch = kBitmapPixelWidth * kBytesPerPixel;
+    const unsigned kMemSz = kBitmapPixelWidth * kBitmapPixelHeight;
+    uint32_t *mem_{nullptr};
+    unsigned x_ = 50;
+    unsigned y_ = 10;
+    unsigned dx_ = 1;
+    unsigned dy_ = 1;
+    const D2D1_RECT_U kBitmapDestRect = D2D1::RectU(0, 0, kBitmapPixelWidth, kBitmapPixelHeight);
     /* 32-bit color integer layout: 0xffaabbcc, where ff = alpha, aa = red, bb = green, cc = blue */
     void put_pixel(unsigned int x, unsigned int y, uint32_t color);
-    void clear_bitmap(uint32_t color);
+    void clear_bitmap_mem(uint32_t color);
     
+    /* Text components. */
+    IDWriteFactory *dwrite_factory_;
+    IDWriteTextFormat *dwrite_text_format_;
+    ID2D1SolidColorBrush *win_text_brush_;
+    const D2D1_RECT_F kTextRect{0, 0, 50, 50};
+    const wchar_t *kText = L"S";
+
     HWND hwnd_;
-
-    /* size of the D2D drawing rectangle (which must match the size of
-     * the window's client area.) */
-    D2D1_SIZE_U surface_size_; 
+    D2D1_SIZE_U surface_size_; /* The size of the surface = size of window client area */
 };
-

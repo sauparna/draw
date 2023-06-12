@@ -27,13 +27,13 @@ void KD2DWindow::on_draw(HDC hdc)
 {
     if (!k_d2d_surface_) return;
     k_d2d_surface_->render();
+    k_d2d_surface_->update();
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 
 void KD2DWindow::on_quit()
 {
     if (!k_d2d_surface_) return;
-    k_d2d_surface_->draw_bitmap(L"S");
     k_d2d_surface_->write_bitmap_file(L"..\\out\\out.png");
 }
 
