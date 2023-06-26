@@ -1,3 +1,4 @@
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #define UNICODE
 #include <windows.h>
@@ -34,7 +35,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
     return result;
 }
 
-int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     // Open a window.
     HWND hwnd;
@@ -143,7 +144,7 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             dxgiDevice->Release();
             DXGI_ADAPTER_DESC adapterDesc;
             dxgiAdapter->GetDesc(&adapterDesc);
-            OutputDebugStrinA("Graphics Device: ");
+            OutputDebugStringA("Graphics Device: ");
             OutputDebugStringW(adapterDesc.Description);
             hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&dxgiFactory);
             assert(SUCCEEDED(hr));
@@ -163,7 +164,7 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
         dxgiSwapChainDesc.Flags = 0;
 
-        HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(d3d11Device, hwnd, &d3d11SwapChainDesc, 0, 0, &d3d11SwapChain);
+        HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(d3d11Device, hwnd, &dxgiSwapChainDesc, 0, 0, &d3d11SwapChain);
         assert(SUCCEEDED(hr));
         dxgiFactory->Release();
     }
@@ -173,9 +174,9 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     {
         ID3D11Texture2D *d3d11FrameBuffer;
         HRESULT hr = d3d11SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&d3d11FrameBuffer);
-        assert(SUCCESS(hr));
+        assert(SUCCEEDED(hr));
         hr = d3d11Device->CreateRenderTargetView(d3d11FrameBuffer, 0, &d3d11FrameBufferView);
-        assert(SUCCESS(hr));
+        assert(SUCCEEDED(hr));
         d3d11FrameBuffer->Release();
     }
 
@@ -199,7 +200,7 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             return 1;
         }
         hr = d3d11Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &vertexShader);
-        assert(SUCCESS(hr));
+        assert(SUCCEEDED(hr));
     }
 
     // Create pixel shader.
@@ -235,14 +236,14 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             { "COL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
         };
         HRESULT hr = d3d11Device->CreateInputLayout(inputElementDesc, ARRAYSIZE(inputElementDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
-        assert(SUCCESS(hr));
+        assert(SUCCEEDED(hr));
         vsBlob->Release();
     }
 
     // Create vertex buffer.
     ID3D11Buffer *vertexBuffer;
     UINT numVerts;
-    UINT sride;
+    UINT stride;
     UINT offset;
     {
         float vertexData[] = { // x, y, r, g, b, a
@@ -259,7 +260,7 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         D3D11_SUBRESOURCE_DATA vertexSubresourceData = {vertexData};
         HRESULT hr = d3d11Device->CreateBuffer(&vertexBufferDesc, &vertexSubresourceData, &vertexBuffer);
-        assert(SUCCESS(hr));
+        assert(SUCCEEDED(hr));
     }
 
     // Main loop.
@@ -292,7 +293,7 @@ int WINPAI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         FLOAT backgroundColor[4] = { 0.1f, 0.2f, 0.6f, 1.0f };
         d3d11DeviceContext->ClearRenderTargetView(d3d11FrameBufferView, backgroundColor);
         RECT winRect;
-        GetClient(hwnd, &winRect);
+        GetClientRect(hwnd, &winRect);
         D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (FLOAT)(winRect.right - winRect.left), (FLOAT)(winRect.bottom - winRect.top), 0.0f, 1.0f };
         d3d11DeviceContext->RSSetViewports(1, &viewport);
         d3d11DeviceContext->OMSetRenderTargets(1, &d3d11FrameBufferView, nullptr);
