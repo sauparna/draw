@@ -26,19 +26,30 @@ void KD2DSurface::cddr()
     HRESULT hr = S_OK;
 
     // Create the Direct3D device.
+
     hr = d3d_create_device(D3D_DRIVER_TYPE_HARDWARE, d3d_device_);
     if (hr == DXGI_ERROR_UNSUPPORTED)
     {
         hr = d3d_create_device(D3D_DRIVER_TYPE_WARP, d3d_device_);
     }
+    assert(SUCCEEDED(hr));
 
     // Create the swap chain.
+
     IDXGIDevice1 *dxgi_device;
     hr = d3d_device_->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void**>(&dxgi_device));
+    assert(SUCCEEDED(hr));
+
     IDXGIAdapter *dxgi_adapter;
     hr = dxgi_device->GetAdapter(&dxgi_adapter);
+    dxgi_device->Release();
+    assert(SUCCEEDED(hr));
+
     IDXGIFactory2 *dxgi_factory;
     hr = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
+    dxgi_adapter->Release();
+    assert(SUCCEEDED(hr));
+
     DXGI_SWAP_CHAIN_DESC1 dxgi_swap_chain_desc = {0};
     dxgi_swap_chain_desc.Width = surface_size_.width;
     dxgi_swap_chain_desc.Height = surface_size_.height;
@@ -57,12 +68,21 @@ void KD2DSurface::cddr()
                                               nullptr,
                                               nullptr,
                                               &dxgi_swap_chain_);
+    dxgi_factory->Release();
+    assert(SUCCEEDED(hr));
 
     // Create the Direct2D device-context.
+
     ID2D1Device1 *d2d_device;
     hr = d2d_factory_->CreateDevice(dxgi_device, &d2d_device);
+    assert(SUCCEEDED(hr));
+
     hr =  d2d_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d_device_context_);
+    d2d_device->Release();
+    assert(SUCCEEDED(hr));
+
     hr = d2d_device_context_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &dxgi_surface_brush_);
+    assert(SUCCEEDED(hr));
 }
 
 void KD2DSurface::ddr()
@@ -100,6 +120,7 @@ HRESULT KD2DSurface::d3d_create_device(D3D_DRIVER_TYPE const driver_type, ID3D11
                                    &d3d_device,
                                    NULL,
                                    &d3d_context);
+    d3d_context->Release();
     return hr;
 }
 
@@ -109,6 +130,7 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
 
     IDXGISurface *dxgi_surface;
     hr = dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+    assert(SUCCEEDED(hr));
     D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
                                                                         D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
                                                                         96.0f, 96.0f);
@@ -116,7 +138,10 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
     hr = d2d_device_context_->CreateBitmapFromDxgiSurface(dxgi_surface,
                                                           &d2d_dxgi_bmp_prop,
                                                           &d2d_dxgi_bmp);
+    dxgi_surface->Release();
+    assert(SUCCEEDED(hr));
     d2d_device_context_->SetTarget(d2d_dxgi_bmp);
+    d2d_dxgi_bmp->Release();
 }
 
 void KD2DSurface::resize(D2D1_SIZE_U sz)
@@ -160,6 +185,7 @@ void KD2DSurface::render()
         ddr();
         return;
     }
+    assert(SUCCEEDED(hr));
 }
 
 D2D1_SIZE_U KD2DSurface::surface_size() const noexcept
