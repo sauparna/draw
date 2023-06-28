@@ -1,8 +1,8 @@
 #pragma once
 
+#define UNICODE
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
-
 #define NOMINMAX // Use the STL min/max
 
 #include <windows.h>

@@ -4,19 +4,19 @@
 
 using namespace std;
 
-KD2DWindow::KD2DWindow(unsigned w, unsigned h) : KWindow{}
+KD2DWindow::KD2DWindow(D2D1_SIZE_U surface_sz) : KWindow{}
 {
     create_window(L"KD2DWindow",
                   L"Direct2D surface",
-                  w,
-                  h);
-    k_d2d_surface_ = std::make_unique<KD2DSurface>(hwnd_, D2D1_SIZE_U{w, h});
+                  surface_sz.width,
+                  surface_sz.height);
+    k_d2d_surface_ = std::make_unique<KD2DSurface>(hwnd_, surface_sz);
 }
 
-void KD2DWindow::on_resize(unsigned w, unsigned h)
+void KD2DWindow::on_resize(D2D1_SIZE_U surface_sz)
 {
     if (!k_d2d_surface_) return;
-    k_d2d_surface_->resize(D2D1_SIZE_U{w, h});
+    k_d2d_surface_->resize(surface_sz);
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 
@@ -58,7 +58,7 @@ LRESULT KD2DWindow::window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     }
     case WM_SIZE:
     {
-        on_resize((UINT)LOWORD(lparam), (UINT)HIWORD(lparam));
+        on_resize(D2D1::SizeU((UINT32)LOWORD(lparam), (UINT32)HIWORD(lparam)));
         return 0;
     }
     case WM_DESTROY:

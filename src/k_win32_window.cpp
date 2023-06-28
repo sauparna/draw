@@ -62,17 +62,17 @@ bool KWindow::register_window_class(LPCTSTR class_name, HINSTANCE hinst)
     if (!GetClassInfoEx(hinst, class_name, &wc))
     {
         wc.cbSize = sizeof(WNDCLASSEX);
-        wc.style = 0;
+        wc.style = CS_HREDRAW | CS_VREDRAW;
         wc.lpfnWndProc = Win32StaticWndProc;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = NULL;
-        wc.hIcon = NULL;
+        wc.hIcon = LoadIcon(0, IDI_APPLICATION);
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
         wc.lpszMenuName = NULL;
         wc.lpszClassName = NULL;
-        wc.hIconSm = NULL;
+        wc.hIconSm = LoadIcon(0, IDI_APPLICATION);
         wc.hInstance = hinst;
         wc.lpszClassName = class_name;
         if (!RegisterClassEx(&wc)) return false;
@@ -96,18 +96,17 @@ bool KWindow::create_window(LPCTSTR class_name,
     mdic.lParam = (LPARAM)this;
     RECT window_rect{0, 0, w, h};
     AdjustWindowRect(&window_rect, WS_OVERLAPPEDWINDOW, FALSE);
-    hwnd_ = CreateWindowEx(0,
-                           class_name,
-                           window_title,
-                           style,
-                           x,
-                           y,
-                           window_rect.right - window_rect.left,
-                           window_rect.bottom - window_rect.top,
-                           parent,
-                           hmenu,
-                           hinst,
-                           &mdic);
+    hwnd_ = CreateWindow(class_name,
+                         window_title,
+                         style,
+                         x,
+                         y,
+                         window_rect.right - window_rect.left,
+                         window_rect.bottom - window_rect.top,
+                         parent,
+                         hmenu,
+                         hinst,
+                         &mdic);
     return hwnd_ != NULL;
 }
 
@@ -116,8 +115,8 @@ WPARAM KWindow::message_loop(void)
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0))
     {
-	TranslateMessage(&msg);
-	DispatchMessage(&msg);
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
     return msg.wParam;
 }
