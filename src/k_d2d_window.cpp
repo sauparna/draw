@@ -17,6 +17,7 @@ void KD2DWindow::on_resize(D2D1_SIZE_U surface_sz)
 {
     if (!k_d2d_surface_) return;
     k_d2d_surface_->resize(surface_sz);
+    k_d2d_surface_->render();
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 
@@ -29,14 +30,12 @@ void KD2DWindow::on_draw(HDC hdc)
 {
     if (!k_d2d_surface_) return;
     k_d2d_surface_->render();
-    k_d2d_surface_->update();
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 
 void KD2DWindow::on_quit()
 {
     if (!k_d2d_surface_) return;
-    k_d2d_surface_->write_bitmap_file(L"..\\out\\out.png");
 }
 
 LRESULT KD2DWindow::window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
