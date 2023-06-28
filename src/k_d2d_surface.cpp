@@ -7,12 +7,17 @@ using namespace kdx;
 KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
     : hwnd_{hwnd}, surface_size_{sz}
 {
+    mem_ = new uint32_t[kMemSz];
+    clear_bitmap_mem(0x00000000);
+    put_pixel(x_, y_, 0xffffffff);
+    
     cdir();
     cddr();
 }
 
 KD2DSurface::~KD2DSurface()
 {
+    delete [] mem_;
 }
 
 void KD2DSurface::cdir()
@@ -88,6 +93,7 @@ void KD2DSurface::cddr()
 void KD2DSurface::ddr()
 {
     dxgi_surface_brush_->Release();
+    d2d_dxgi_bmp_->Release();
     d2d_device_context_->Release();
     dxgi_swap_chain_->Release();
     d3d_device_->Release();
@@ -134,14 +140,16 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
     D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
                                                                         D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
                                                                         96.0f, 96.0f);
-    ID2D1Bitmap1 *d2d_dxgi_bmp;
+    // ID2D1Bitmap1 *d2d_dxgi_bmp;
     hr = d2d_device_context_->CreateBitmapFromDxgiSurface(dxgi_surface,
                                                           &d2d_dxgi_bmp_prop,
-                                                          &d2d_dxgi_bmp);
+                                                          &d2d_dxgi_bmp_);
     dxgi_surface->Release();
     assert(SUCCEEDED(hr));
-    d2d_device_context_->SetTarget(d2d_dxgi_bmp);
-    d2d_dxgi_bmp->Release();
+
+    d2d_device_context_->SetTarget(d2d_dxgi_bmp_);
+    // d2d_device_context_->SetTarget(d2d_dxgi_bmp);
+    // d2d_dxgi_bmp->Release();
 }
 
 void KD2DSurface::resize(D2D1_SIZE_U sz)
@@ -164,8 +172,6 @@ void KD2DSurface::render()
         bridge_swap_chain_and_device_context();
     }
     d2d_device_context_->BeginDraw();
-    d2d_device_context_->SetTransform(D2D1::Matrix3x2F::Identity());
-    d2d_device_context_->Clear(D2D1::ColorF(D2D1::ColorF::Black));
     D2D1_SIZE_F surface_sz = d2d_device_context_->GetSize();
     int w = static_cast<int>(surface_sz.width);
     int h = static_cast<int>(surface_sz.height);
@@ -196,4 +202,36 @@ D2D1_SIZE_U KD2DSurface::surface_size() const noexcept
 HWND KD2DSurface::hwnd() const
 {
     return hwnd_;
+}
+
+void KD2DSurface::put_pixel(unsigned int x, unsigned int y, uint32_t color)
+{
+    mem_[y * kBitmapPixelWidth + x] = color;
+}
+
+void KD2DSurface::clear_bitmap_mem(uint32_t color)
+{
+    for (int y = 0; y < kBitmapPixelHeight; y++)
+    {
+	for (int x = 0; x < kBitmapPixelWidth; x++)
+	{
+	    mem_[y * kBitmapPixelWidth + x] = color;
+	}
+    }
+}
+
+void KD2DSurface::update()
+{
+    put_pixel(x_, y_, 0x00000000); // Wipe the pixel.
+
+    x_ += dx_;
+    y_ += dy_;
+
+    if (x_ == kBitmapPixelWidth - 1 || x_ == 0) { dx_ = -dx_; }
+    if (y_ == kBitmapPixelHeight - 1 || y_ == 0) { dy_ = -dy_; }
+
+    put_pixel(x_, y_, 0xffffffff); // Draw a new pixel.
+
+    HRESULT hr = d2d_dxgi_bmp_->CopyFromMemory(&kBitmapDestRect, mem_, kBitmapPitch);
+    assert(SUCCEEDED(hr));
 }
