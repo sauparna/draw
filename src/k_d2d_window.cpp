@@ -6,16 +6,10 @@ using namespace std;
 
 KD2DWindow::KD2DWindow(unsigned w, unsigned h) : KWindow{}
 {
-    create_window(0,
-                  L"KD2DWindow",
+    create_window(L"KD2DWindow",
                   L"Direct2D surface",
-                  WS_OVERLAPPEDWINDOW,
-                  CW_USEDEFAULT,
-                  CW_USEDEFAULT,
                   w,
-                  h,
-                  NULL,
-                  NULL);
+                  h);
     k_d2d_surface_ = std::make_unique<KD2DSurface>(hwnd_, D2D1_SIZE_U{w, h});
 }
 

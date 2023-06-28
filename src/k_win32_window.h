@@ -6,8 +6,15 @@ public:
     KWindow(void);
     virtual ~KWindow(void);
     bool register_window_class(LPCTSTR class_name, HINSTANCE hinst);
-    virtual bool create_window(DWORD ex_style, LPCTSTR class_name, LPCTSTR window_title, DWORD style,
-                               int x, int y, int w, int h, HWND parent, HMENU hmenu);
+    virtual bool create_window(LPCTSTR class_name,
+                               LPCTSTR window_title,
+                               int w = 600,
+                               int h = 400,
+                               int x = CW_USEDEFAULT,
+                               int y = CW_USEDEFAULT,
+                               DWORD style = WS_OVERLAPPEDWINDOW,
+                               HWND parent = NULL,
+                               HMENU hmenu = NULL);
     virtual WPARAM message_loop(void);
     BOOL show_window(int cmd_show) const;
     BOOL update_window(void) const;

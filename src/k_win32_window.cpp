@@ -80,14 +80,13 @@ bool KWindow::register_window_class(LPCTSTR class_name, HINSTANCE hinst)
     return true;
 }
 
-bool KWindow::create_window(DWORD ex_style,
-                            LPCTSTR class_name,
+bool KWindow::create_window(LPCTSTR class_name,
                             LPCTSTR window_title,
-                            DWORD style,
-                            int x,
-                            int y,
                             int w,
                             int h,
+                            int x,
+                            int y,
+                            DWORD style,
                             HWND parent,
                             HMENU hmenu)
 {
@@ -97,11 +96,12 @@ bool KWindow::create_window(DWORD ex_style,
     mdic.lParam = (LPARAM)this;
     RECT window_rect{0, 0, w, h};
     AdjustWindowRect(&window_rect, WS_OVERLAPPEDWINDOW, FALSE);
-    hwnd_ = CreateWindowEx(ex_style,
+    hwnd_ = CreateWindowEx(0,
                            class_name,
                            window_title,
                            style,
-                           x, y,
+                           x,
+                           y,
                            window_rect.right - window_rect.left,
                            window_rect.bottom - window_rect.top,
                            parent,
