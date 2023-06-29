@@ -27,6 +27,7 @@ protected:
     ID2D1Bitmap1 *d2d_dxgi_bmp_;
     ID2D1SolidColorBrush *dxgi_surface_brush_;
     IDXGISwapChain1 *dxgi_swap_chain_;
+    bool device_lost_{false};
 
     const unsigned kBitmapPixelWidth = 100;
     const unsigned kBitmapPixelHeight = 100;

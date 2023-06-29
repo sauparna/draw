@@ -88,6 +88,8 @@ void KD2DSurface::cddr()
 
     hr = d2d_device_context_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &dxgi_surface_brush_);
     assert(SUCCEEDED(hr));
+
+    device_lost_ = false;
 }
 
 void KD2DSurface::ddr()
@@ -97,6 +99,7 @@ void KD2DSurface::ddr()
     d2d_device_context_->Release();
     dxgi_swap_chain_->Release();
     d3d_device_->Release();
+    device_lost_ = true;
 }
 
 HRESULT KD2DSurface::d3d_create_device(D3D_DRIVER_TYPE const driver_type, ID3D11Device *&d3d_device)
@@ -158,15 +161,19 @@ void KD2DSurface::resize(D2D1_SIZE_U sz)
     d2d_device_context_->SetTarget(nullptr);
     HRESULT hr = dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
     if (hr == S_OK)
+    {
         bridge_swap_chain_and_device_context();
+    }
     else
+    {
         ddr();
+    }
 }
 
 void KD2DSurface::render()
 {
     HRESULT hr = S_OK;
-    if (!d2d_device_context_)
+    if (device_lost_)
     {
         cddr();
         bridge_swap_chain_and_device_context();
@@ -213,10 +220,10 @@ void KD2DSurface::clear_bitmap_mem(uint32_t color)
 {
     for (int y = 0; y < kBitmapPixelHeight; y++)
     {
-	for (int x = 0; x < kBitmapPixelWidth; x++)
-	{
-	    mem_[y * kBitmapPixelWidth + x] = color;
-	}
+        for (int x = 0; x < kBitmapPixelWidth; x++)
+        {
+            mem_[y * kBitmapPixelWidth + x] = color;
+        }
     }
 }
 
