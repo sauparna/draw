@@ -143,7 +143,6 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
     D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
                                                                         D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
                                                                         96.0f, 96.0f);
-    // ID2D1Bitmap1 *d2d_dxgi_bmp;
     hr = d2d_device_context_->CreateBitmapFromDxgiSurface(dxgi_surface,
                                                           &d2d_dxgi_bmp_prop,
                                                           &d2d_dxgi_bmp_);
@@ -151,8 +150,6 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
     assert(SUCCEEDED(hr));
 
     d2d_device_context_->SetTarget(d2d_dxgi_bmp_);
-    // d2d_device_context_->SetTarget(d2d_dxgi_bmp);
-    // d2d_dxgi_bmp->Release();
 }
 
 void KD2DSurface::resize(D2D1_SIZE_U sz)
@@ -178,14 +175,15 @@ void KD2DSurface::render()
         cddr();
         bridge_swap_chain_and_device_context();
     }
-    d2d_device_context_->BeginDraw();
-    D2D1_SIZE_F surface_sz = d2d_device_context_->GetSize();
-    int w = static_cast<int>(surface_sz.width);
-    int h = static_cast<int>(surface_sz.height);
-    D2D1_RECT_F rectangle = D2D1::RectF(surface_sz.width / 2 - 50.0f, surface_sz.height / 2 - 50.0f,
-                                        surface_sz.width / 2 + 50.0f, surface_sz.height / 2 + 50.0f);
-    d2d_device_context_->DrawRectangle(&rectangle, dxgi_surface_brush_);
 
+    D2D1_RECT_U bmp_rectangle = D2D1::RectU(10, 10, 10 + 100, 10 + 100);
+    D2D1_RECT_F draw_rectangle = D2D1::RectF(120, 10, 120 + 100, 10 + 100);
+
+    hr = d2d_dxgi_bmp_->CopyFromMemory(&bmp_rectangle, mem_, kBitmapPitch);
+    assert(SUCCEEDED(hr));
+
+    d2d_device_context_->BeginDraw();
+    d2d_device_context_->DrawRectangle(&draw_rectangle, dxgi_surface_brush_);
     hr = d2d_device_context_->EndDraw();
     if (hr == D2DERR_RECREATE_TARGET)
     {
@@ -238,7 +236,4 @@ void KD2DSurface::update()
     if (y_ == kBitmapPixelHeight - 1 || y_ == 0) { dy_ = -dy_; }
 
     put_pixel(x_, y_, 0xffffffff); // Draw a new pixel.
-
-    HRESULT hr = d2d_dxgi_bmp_->CopyFromMemory(&kBitmapDestRect, mem_, kBitmapPitch);
-    assert(SUCCEEDED(hr));
 }

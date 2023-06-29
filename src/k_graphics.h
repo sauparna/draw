@@ -15,21 +15,10 @@
 
 #include <d3d11.h>
 
-// #include <dwrite.h>
-// #include <wincodec.h>
 #include <memory>
 #include <cassert>
 #include <string>
 #include <cstdint>
-
-/*
-#include <algorithm>
-#include <exception>
-#include <fstream>
-#include <stdexcept>
-#include <vector>
-#include <cstdio>
-*/
 
 namespace kdx
 {
