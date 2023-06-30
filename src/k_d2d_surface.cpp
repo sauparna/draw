@@ -177,19 +177,19 @@ void KD2DSurface::render()
     }
 
     D2D1_RECT_U bmp_rectangle = D2D1::RectU(10, 10, 10 + 100, 10 + 100);
-    D2D1_RECT_F draw_rectangle = D2D1::RectF(120, 10, 120 + 100, 10 + 100);
+    // D2D1_RECT_F draw_rectangle = D2D1::RectF(120, 10, 120 + 100, 10 + 100);
 
     hr = d2d_dxgi_bmp_->CopyFromMemory(&bmp_rectangle, mem_, kBitmapPitch);
     assert(SUCCEEDED(hr));
 
-    d2d_device_context_->BeginDraw();
-    d2d_device_context_->DrawRectangle(&draw_rectangle, dxgi_surface_brush_);
-    hr = d2d_device_context_->EndDraw();
-    if (hr == D2DERR_RECREATE_TARGET)
-    {
-        ddr();
-        return;
-    }
+    // d2d_device_context_->BeginDraw();
+    // d2d_device_context_->DrawRectangle(&draw_rectangle, dxgi_surface_brush_);
+    // hr = d2d_device_context_->EndDraw();
+    // if (hr == D2DERR_RECREATE_TARGET)
+    // {
+    //     ddr();
+    //     return;
+    // }
     hr = dxgi_swap_chain_->Present(1, 0);
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
