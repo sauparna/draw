@@ -18,7 +18,6 @@ void KD2DWindow::on_resize(D2D1_SIZE_U surface_sz)
     if (!k_d2d_surface_) return;
     k_d2d_surface_->resize(surface_sz);
     k_d2d_surface_->render();
-    k_d2d_surface_->update();
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 
@@ -31,7 +30,6 @@ void KD2DWindow::on_draw(HDC hdc)
 {
     if (!k_d2d_surface_) return;
     k_d2d_surface_->render();
-    k_d2d_surface_->update();
     InvalidateRect(hwnd_, NULL, FALSE);
 }
 

@@ -7,17 +7,12 @@ using namespace kdx;
 KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
     : hwnd_{hwnd}, surface_size_{sz}
 {
-    mem_ = new uint32_t[kMemSz];
-    clear_bitmap_mem(0x00000000);
-    put_pixel(x_, y_, 0xffffffff);
-    
     cdir();
     cddr();
 }
 
 KD2DSurface::~KD2DSurface()
 {
-    delete [] mem_;
 }
 
 void KD2DSurface::cdir()
@@ -76,17 +71,24 @@ void KD2DSurface::cddr()
     dxgi_factory->Release();
     assert(SUCCEEDED(hr));
 
-    // Create the Direct2D device-context.
+    // Create the Direct2D render target.
 
-    ID2D1Device1 *d2d_device;
-    hr = d2d_factory_->CreateDevice(dxgi_device, &d2d_device);
+    D2D1_RENDER_TARGET_PROPERTIES d2d_rt_properties = D2D1::RenderTargetProperties(
+        D2D1_RENDER_TARGET_TYPE_DEFAULT,
+        D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+        96.0,
+        96.0);
+    IDXGISurface *dxgi_surface;
+    hr = dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+    assert(SUCCEEDED(hr));
+    hr = d2d_factory_->CreateDxgiSurfaceRenderTarget(
+        dxgi_surface,
+        &d2d_rt_properties,
+        &d2d_rt_);
+    dxgi_surface->Release();
     assert(SUCCEEDED(hr));
 
-    hr =  d2d_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d_device_context_);
-    d2d_device->Release();
-    assert(SUCCEEDED(hr));
-
-    hr = d2d_device_context_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &dxgi_surface_brush_);
+    hr = d2d_rt_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &dxgi_surface_brush_);
     assert(SUCCEEDED(hr));
 
     device_lost_ = false;
@@ -95,8 +97,7 @@ void KD2DSurface::cddr()
 void KD2DSurface::ddr()
 {
     dxgi_surface_brush_->Release();
-    d2d_dxgi_bmp_->Release();
-    d2d_device_context_->Release();
+    d2d_rt_->Release();
     dxgi_swap_chain_->Release();
     d3d_device_->Release();
     device_lost_ = true;
@@ -133,38 +134,12 @@ HRESULT KD2DSurface::d3d_create_device(D3D_DRIVER_TYPE const driver_type, ID3D11
     return hr;
 }
 
-void KD2DSurface::bridge_swap_chain_and_device_context()
-{
-    HRESULT hr = S_OK;
-
-    IDXGISurface *dxgi_surface;
-    hr = dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
-    assert(SUCCEEDED(hr));
-    D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-                                                                        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
-                                                                        96.0f, 96.0f);
-    hr = d2d_device_context_->CreateBitmapFromDxgiSurface(dxgi_surface,
-                                                          &d2d_dxgi_bmp_prop,
-                                                          &d2d_dxgi_bmp_);
-    dxgi_surface->Release();
-    assert(SUCCEEDED(hr));
-
-    d2d_device_context_->SetTarget(d2d_dxgi_bmp_);
-}
-
 void KD2DSurface::resize(D2D1_SIZE_U sz)
 {
     surface_size_ = sz;
-    d2d_device_context_->SetTarget(nullptr);
     HRESULT hr = dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-    if (hr == S_OK)
-    {
-        bridge_swap_chain_and_device_context();
-    }
-    else
-    {
+    if (FAILED(hr))
         ddr();
-    }
 }
 
 void KD2DSurface::render()
@@ -173,23 +148,17 @@ void KD2DSurface::render()
     if (device_lost_)
     {
         cddr();
-        bridge_swap_chain_and_device_context();
     }
 
-    D2D1_RECT_U bmp_rectangle = D2D1::RectU(10, 10, 10 + 100, 10 + 100);
-    // D2D1_RECT_F draw_rectangle = D2D1::RectF(120, 10, 120 + 100, 10 + 100);
-
-    hr = d2d_dxgi_bmp_->CopyFromMemory(&bmp_rectangle, mem_, kBitmapPitch);
-    assert(SUCCEEDED(hr));
-
-    // d2d_device_context_->BeginDraw();
-    // d2d_device_context_->DrawRectangle(&draw_rectangle, dxgi_surface_brush_);
-    // hr = d2d_device_context_->EndDraw();
-    // if (hr == D2DERR_RECREATE_TARGET)
-    // {
-    //     ddr();
-    //     return;
-    // }
+    d2d_rt_->BeginDraw();
+    D2D1_RECT_F draw_rectangle = D2D1::RectF(120, 10, 120 + 100, 10 + 100);
+    d2d_rt_->DrawRectangle(&draw_rectangle, dxgi_surface_brush_);
+    hr = d2d_rt_->EndDraw();
+    if (hr == D2DERR_RECREATE_TARGET)
+    {
+        ddr();
+        return;
+    }
     hr = dxgi_swap_chain_->Present(1, 0);
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
@@ -209,31 +178,31 @@ HWND KD2DSurface::hwnd() const
     return hwnd_;
 }
 
-void KD2DSurface::put_pixel(unsigned int x, unsigned int y, uint32_t color)
+void KD2DSurface::put_pixel(unsigned int x, unsigned int y, uint32_t color, BYTE* mem)
 {
-    mem_[y * kBitmapPixelWidth + x] = color;
+    mem[y * surface_size_.width + x] = color;
 }
 
-void KD2DSurface::clear_bitmap_mem(uint32_t color)
+void KD2DSurface::clear_framebuffer(uint32_t color, BYTE* mem)
 {
-    for (int y = 0; y < kBitmapPixelHeight; y++)
+    for (int y = 0; y < surface_size_.height; y++)
     {
-        for (int x = 0; x < kBitmapPixelWidth; x++)
+        for (int x = 0; x < surface_size_.width; x++)
         {
-            mem_[y * kBitmapPixelWidth + x] = color;
+            mem[y * surface_size_.width + x] = color;
         }
     }
 }
 
-void KD2DSurface::update()
+void KD2DSurface::update(BYTE *mem)
 {
-    put_pixel(x_, y_, 0x00000000); // Wipe the pixel.
+    put_pixel(x_, y_, 0x00000000, mem); // Wipe the pixel.
 
     x_ += dx_;
     y_ += dy_;
 
-    if (x_ == kBitmapPixelWidth - 1 || x_ == 0) { dx_ = -dx_; }
-    if (y_ == kBitmapPixelHeight - 1 || y_ == 0) { dy_ = -dy_; }
+    if (x_ == surface_size_.width - 1 || x_ == 0) { dx_ = -dx_; }
+    if (y_ == surface_size_.height - 1 || y_ == 0) { dy_ = -dy_; }
 
-    put_pixel(x_, y_, 0xffffffff); // Draw a new pixel.
+    put_pixel(x_, y_, 0xffffffff, mem); // Draw a new pixel.
 }
