@@ -47,7 +47,6 @@ void KD2DSurface::cddr()
 
     IDXGIAdapter *dxgi_adapter;
     hr = dxgi_device->GetAdapter(&dxgi_adapter);
-    dxgi_device->Release();
     assert(SUCCEEDED(hr));
 
     IDXGIFactory2 *dxgi_factory;
@@ -80,6 +79,7 @@ void KD2DSurface::cddr()
 
     ID2D1Device1 *d2d_device;
     hr = d2d_factory_->CreateDevice(dxgi_device, &d2d_device);
+    dxgi_device->Release();
     assert(SUCCEEDED(hr));
 
     hr =  d2d_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d_device_context_);
