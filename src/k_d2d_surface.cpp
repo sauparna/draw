@@ -12,7 +12,7 @@ KD2DSurface::KD2DSurface(HWND hwnd, D2D1_SIZE_U sz)
     put_pixel(x_, y_, 0xffffffff);
     
     cdir();
-    cddr();
+    cdr();
 }
 
 KD2DSurface::~KD2DSurface()
@@ -26,7 +26,7 @@ void KD2DSurface::cdir()
     assert(SUCCEEDED(hr));
 }
 
-void KD2DSurface::cddr()
+void KD2DSurface::cdr()
 {
     HRESULT hr = S_OK;
 
@@ -172,7 +172,7 @@ void KD2DSurface::render()
     HRESULT hr = S_OK;
     if (device_lost_)
     {
-        cddr();
+        cdr();
         bridge_swap_chain_and_device_context();
     }
 

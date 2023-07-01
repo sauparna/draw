@@ -8,7 +8,7 @@ public:
     KD2DSurface(HWND hwnd, D2D1_SIZE_U sz);
     ~KD2DSurface();
     void cdir();
-    void cddr();
+    void cdr();
     void ddr();
     void resize(D2D1_SIZE_U sz);
     void render();
