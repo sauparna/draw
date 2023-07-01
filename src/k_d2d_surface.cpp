@@ -157,7 +157,7 @@ void KD2DSurface::resize(D2D1_SIZE_U sz)
     surface_size_ = sz;
     d2d_device_context_->SetTarget(nullptr);
     HRESULT hr = dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-    if (hr == S_OK)
+    if (SUCCEEDED(hr)))
     {
         bridge_swap_chain_and_device_context();
     }
