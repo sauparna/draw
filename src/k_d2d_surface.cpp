@@ -140,9 +140,11 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
     IDXGISurface *dxgi_surface;
     hr = dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
     assert(SUCCEEDED(hr));
-    D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-                                                                        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
-                                                                        96.0f, 96.0f);
+    D2D1_BITMAP_PROPERTIES1 d2d_dxgi_bmp_prop = D2D1::BitmapProperties1(
+        D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
+        96.0f,
+        96.0f);
     hr = d2d_device_context_->CreateBitmapFromDxgiSurface(dxgi_surface,
                                                           &d2d_dxgi_bmp_prop,
                                                           &d2d_dxgi_bmp_);
@@ -157,7 +159,7 @@ void KD2DSurface::resize(D2D1_SIZE_U sz)
     surface_size_ = sz;
     d2d_device_context_->SetTarget(nullptr);
     HRESULT hr = dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-    if (SUCCEEDED(hr)))
+    if (SUCCEEDED(hr))
     {
         bridge_swap_chain_and_device_context();
     }
