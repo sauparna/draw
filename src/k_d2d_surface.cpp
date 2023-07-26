@@ -133,6 +133,8 @@ HRESULT KD2DSurface::d3d_create_device(D3D_DRIVER_TYPE const driver_type, ID3D11
     return hr;
 }
 
+// NOTE: The function name can be confusing; fundamentally this is a
+// "create render-targets" call.
 void KD2DSurface::bridge_swap_chain_and_device_context()
 {
     HRESULT hr = S_OK;
@@ -156,6 +158,11 @@ void KD2DSurface::bridge_swap_chain_and_device_context()
 
 void KD2DSurface::resize(D2D1_SIZE_U sz)
 {
+    // NOTE: It's not efficient to call ResizeBuffers() and have it
+    // fail to determine that we call ddr(), because we know that if
+    // we are ready to call ResizeBuffers() we already know that we
+    // need to release some resources.
+    // REWRITE: Call ddr() before calling ResizeBuffers().
     surface_size_ = sz;
     d2d_device_context_->SetTarget(nullptr);
     HRESULT hr = dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
